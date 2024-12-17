@@ -84,6 +84,8 @@ Enemy enemies[4][12];
 
 Texture2D textureBackground, playerTexture, playerTexture, covaTexture, invadersTextures[4];
 
+Sound shootFx = { 0 }, invaderkilledFx = { 0 }, explosionFx = { 0 };
+
 //----------------------------------------------------------------------------------
 // Pilas para disparos
 //----------------------------------------------------------------------------------
@@ -166,7 +168,7 @@ void InitGameplayScreen(void)
     resourcesPath[length - 27] = '\0';  // Ajusta el terminador nulo para recortar
     strcat(resourcesPath, "src\\resources\\");
 
-    char temparalChain[200];
+    char temporalChain[200];
 
     // TODO: Initialize GAMEPLAY screen variables here!
     framesCounter = 0;
@@ -226,60 +228,76 @@ void InitGameplayScreen(void)
 
 
     //Inicializar Texturas
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "background.png");
-    Image background = LoadImage (temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "background.png");
+    Image background = LoadImage (temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&background, screenWidth, screenHeight);
     textureBackground = LoadTextureFromImage(background);
     UnloadImage(background);
 
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "player.png");
-    Image player = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "player.png");
+    Image player = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&player, playerWidth, playerHeight);
     playerTexture = LoadTextureFromImage(player);
     UnloadImage(player);
 
     for (int i = 0;i < 4;i++) {
-        strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-        strcat(temparalChain, "invaders");
+        strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+        strcat(temporalChain, "invaders");
         
         switch (i) {
         case 0:
-            strcat(temparalChain, "1");
+            strcat(temporalChain, "1");
             break;
         case 1:
-            strcat(temparalChain, "2");
+            strcat(temporalChain, "2");
             break;
         case 2:
-            strcat(temparalChain, "3");
+            strcat(temporalChain, "3");
             break;
         case 3:
-            strcat(temparalChain, "4");
+            strcat(temporalChain, "4");
             break;
         }
 
-        strcat(temparalChain, ".png");
-        Image invader = LoadImage(temparalChain);
-        temparalChain[0] = '\0';
+        strcat(temporalChain, ".png");
+        Image invader = LoadImage(temporalChain);
+        temporalChain[0] = '\0';
 
         ImageResize(&invader, enemies[i][0].width, enemies[i][0].height);
         invadersTextures[i] = LoadTextureFromImage(invader);
         UnloadImage(invader);
     }
 
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "CovaWhite.png");
-    Image cova = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "CovaWhite.png");
+    Image cova = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&cova, 28 , 28);
     covaTexture = LoadTextureFromImage(cova);
     UnloadImage(cova);
+
+    //Sonidos
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "shoot.wav");
+    shootFx = LoadSound(temporalChain);
+    temporalChain[0] = '\0';
+
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "invaderkilled.wav");
+    invaderkilledFx = LoadSound(temporalChain);
+    temporalChain[0] = '\0';
+
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "explosion.wav");
+    explosionFx = LoadSound(temporalChain);
+    temporalChain[0] = '\0';
 
 }
 
@@ -315,17 +333,17 @@ void DrawGameplayScreen()
     dibujarDisparos(&shootsEnemyStack, WHITE);
 
 
-    char temparalChain[200];
-    strcpy(temparalChain, "Score: ");  // Copy str1 into result
+    char temporalChain[200];
+    strcpy(temporalChain, "Score: ");  // Copy str1 into result
     
     
     char strScore[20];
 
     itoa(score, strScore, 10);
 
-    strcat(temparalChain, strScore);
+    strcat(temporalChain, strScore);
     
-    DrawTextWithBorder(temparalChain, 20, 5, 20, MAROON, 1, WHITE);
+    DrawTextWithBorder(temporalChain, 20, 5, 20, MAROON, 1, WHITE);
 
     if (win) {
         DrawTextWithBorder(" Ganaste !!!", 200, screenHeight / 2 - 30, 60, MAROON, 3, WHITE);
@@ -342,6 +360,7 @@ void DrawGameplayScreen()
 // Gameplay Screen Update logic
 void UpdateGameplayScreen(void)
 {
+
     // TODO: Update GAMEPLAY screen variables here!
 
     // Jugador
@@ -350,6 +369,8 @@ void UpdateGameplayScreen(void)
 
     // Disparo de jugador
     if (IsKeyPressed(KEY_SPACE) && player.isAlive) {
+        PlaySound(shootFx);
+
         Shoot shoot;
         shoot.position = player.position;
         push(&shootsPlayerStack, shoot);
@@ -445,7 +466,7 @@ void UpdateGameplayScreen(void)
                         && shootsPlayerStack.arr[iS].position.x <= enemies[i][j].position.x + enemies[i][j].width / 2
                         && shootsPlayerStack.arr[iS].position.y >= enemies[i][j].position.y - enemies[i][j].height / 2
                         && shootsPlayerStack.arr[iS].position.y <= enemies[i][j].position.y + enemies[i][j].height / 2) {
-
+                        PlaySound(invaderkilledFx);
                         enemies[i][j].isAlive = 0;
                         score += 100;
                         removeAt(&shootsPlayerStack, iS);
@@ -463,6 +484,7 @@ void UpdateGameplayScreen(void)
                 && shootsEnemyStack.arr[iS].position.y >= player.position.y - playerHeight / 2
                 && shootsEnemyStack.arr[iS].position.y <= player.position.y + playerHeight / 2) {
 
+                PlaySound(explosionFx);
                 player.isAlive = 0;
 
                 removeAt(&shootsEnemyStack, iS);

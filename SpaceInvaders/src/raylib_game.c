@@ -26,7 +26,7 @@
 GameScreen currentScreen = LOGO;
 Font font = { 0 };
 Music music = { 0 };
-Sound fxCoin = { 0 };
+Sound fxCoin;
 
 //----------------------------------------------------------------------------------
 // Local Variables Definition (local to this module)
@@ -63,13 +63,31 @@ int main(void)
 
     InitAudioDevice();      // Initialize audio device
 
+    char resourcesPath[200];
+    strcpy(resourcesPath, GetWorkingDirectory());
+    size_t length = strlen(resourcesPath);
+    resourcesPath[length - 27] = '\0';  // Ajusta el terminador nulo para recortar
+    strcat(resourcesPath, "src\\resources\\");
+
     // Load global data (assets that must be available in all screens, i.e. font)
     font = LoadFont("resources/mecha.png");
-    //music = LoadMusicStream("resources/ambient.ogg"); // TODO: Load music
+    
     fxCoin = LoadSound("resources/coin.wav");
 
-    SetMusicVolume(music, 1.0f);
+    char temporalChain[200];
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "spaceinvaders.wav");
+    music = LoadMusicStream(temporalChain);
+    temporalChain[0] = '\0';
+
+
+    SetMusicVolume(music, 6.0f);
+
     PlayMusicStream(music);
+
+    float timePlayed = 0.0f;        // Time played normalized [0.0f..1.0f]
+    bool pause = false;             // Music playing paused
+
 
     // Setup and init first screen
     currentScreen = LOGO;
@@ -84,6 +102,16 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())    // Detect window close button or ESC key
     {
+        //----------------------------------------------------------------------------------
+        UpdateMusicStream(music);   // Update music buffer with new stream data
+
+       
+        // Get normalized time played for current music stream
+        timePlayed = GetMusicTimePlayed(music) / GetMusicTimeLength(music);
+
+        if (timePlayed > 1.0f) timePlayed = 1.0f;   // Make sure time played is no longer than music
+        //----------------------------------------------------------------------------------
+
         UpdateDrawFrame();
     }
 #endif

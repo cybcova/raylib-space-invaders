@@ -48,27 +48,27 @@ void InitTitleScreen(void)
     resourcesPath[length - 27] = '\0';  // Ajusta el terminador nulo para recortar
     strcat(resourcesPath, "src\\resources\\");
     
-    char temparalChain[200];
+    char temporalChain[200];
 
     // TODO: Initialize TITLE screen variables here!
     framesCounter = 0;
     finishScreen = 0;
 
     //Inicializar Texturas
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "background.png");
-    Image background = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "background.png");
+    Image background = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&background, screenWidth, screenHeight);
     textureBackground = LoadTextureFromImage(background);
     UnloadImage(background);
 
 
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "logo.png");
-    Image logo = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "logo.png");
+    Image logo = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&logo, screenWidth/2, screenHeight/2);
     textureLogo = LoadTextureFromImage(logo);
@@ -76,19 +76,19 @@ void InitTitleScreen(void)
 
 
 
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "gamepad.png");
-    Image gamepad = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "gamepad.png");
+    Image gamepad = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&gamepad, 520, 130);
     textureGamepad = LoadTextureFromImage(gamepad);
     UnloadImage(gamepad);
 
-    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
-    strcat(temparalChain, "CovaWhite.png");
-    Image cova = LoadImage(temparalChain);
-    temparalChain[0] = '\0';
+    strcpy(temporalChain, resourcesPath);  // Copy str1 into result
+    strcat(temporalChain, "CovaWhite.png");
+    Image cova = LoadImage(temporalChain);
+    temporalChain[0] = '\0';
 
     ImageResize(&cova, 80, 80);
     covaTexture = LoadTextureFromImage(cova);
