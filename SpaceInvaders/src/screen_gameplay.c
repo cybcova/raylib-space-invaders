@@ -28,10 +28,6 @@
 
 #include <time.h>
 
-
-#define resourcesPath "C:/Users/cybco/OneDrive/Escritorio/SpaceInvaders/raylib-game-template-main/src/resources/"
-
-
 static const int screenWidth = 800;
 static const int screenHeight = 450;
 
@@ -48,8 +44,10 @@ const float shootWidth = 4;
 const float shootHeight = 15;
 const float shootSpeed = 10.0f;
 
-int win = 0;
-int loose = 0;
+int win;
+int loose;
+
+int score;
 
 //----------------------------------------------------------------------------------
 // Structs
@@ -84,7 +82,7 @@ int moverDerecha = 0;
 Player player = { 0 };
 Enemy enemies[4][12];
 
-Texture2D textureBackground, playerTexture, playerTexture, invadersTextures[4];
+Texture2D textureBackground, playerTexture, playerTexture, covaTexture, invadersTextures[4];
 
 //----------------------------------------------------------------------------------
 // Pilas para disparos
@@ -144,12 +142,12 @@ dibujarDisparos(Stack *shootsStack, Color color) {
 // Texto personlizado con bordes
 //----------------------------------------------------------------------------------
 
-void DrawTextWithBorder(const char* text, int posX, int posY, int fontSize, Color textColor, Color borderColor) {
+void DrawTextWithBorder(const char* text, int posX, int posY, int fontSize, Color textColor, int borderSize, Color borderColor) {
     // Dibujar el texto en posiciones desplazadas para crear el efecto de borde
-    DrawText(text, posX - 3, posY, fontSize, borderColor); // Izquierda
-    DrawText(text, posX + 3, posY, fontSize, borderColor); // Derecha
-    DrawText(text, posX, posY - 3, fontSize, borderColor); // Arriba
-    DrawText(text, posX, posY + 3, fontSize, borderColor); // Abajo
+    DrawText(text, posX - borderSize, posY, fontSize, borderColor); // Izquierda
+    DrawText(text, posX + borderSize, posY, fontSize, borderColor); // Derecha
+    DrawText(text, posX, posY - borderSize, fontSize, borderColor); // Arriba
+    DrawText(text, posX, posY + borderSize, fontSize, borderColor); // Abajo
 
     // Dibujar el texto original encima
     DrawText(text, posX, posY, fontSize, textColor);
@@ -162,13 +160,24 @@ void DrawTextWithBorder(const char* text, int posX, int posY, int fontSize, Colo
 // Gameplay Screen Initialization logic
 void InitGameplayScreen(void)
 {
-    char temparalChain[200];
+    char resourcesPath[200];
+    strcpy(resourcesPath, GetWorkingDirectory());
+    size_t length = strlen(resourcesPath);
+    resourcesPath[length - 27] = '\0';  // Ajusta el terminador nulo para recortar
+    strcat(resourcesPath, "src\\resources\\");
 
+    char temparalChain[200];
 
     // TODO: Initialize GAMEPLAY screen variables here!
     framesCounter = 0;
     finishScreen = 0;
 
+    //reset win loose
+    win = 0;
+    loose = 0;
+
+    //reset score
+    score = 0;
 
     //Iniciar jugador
     player.position = (Vector2){ screenWidth / 2 , screenHeight - playerHeight};
@@ -203,10 +212,10 @@ void InitGameplayScreen(void)
 
             enemies[i][j].isAlive = 1;
 
-            enemies[i][j].speed = 1.0f;
+            enemies[i][j].speed = 1.3f;
             enemies[i][j].position = (Vector2){ 
-                ((float)j * (enemies[i][j].width + enemiesXSpace)) + 25 , 
-                ((float)i * (enemies[i][j].height + enemiesYSpace )) + 25
+                ((float)j * (enemies[i][j].width + enemiesXSpace)) + enemies[i][j].width / 2,
+                ((float)i * (enemies[i][j].height + enemiesYSpace )) + 50
             };
         }
     }
@@ -263,6 +272,14 @@ void InitGameplayScreen(void)
         UnloadImage(invader);
     }
 
+    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
+    strcat(temparalChain, "CovaWhite.png");
+    Image cova = LoadImage(temparalChain);
+    temparalChain[0] = '\0';
+
+    ImageResize(&cova, 28 , 28);
+    covaTexture = LoadTextureFromImage(cova);
+    UnloadImage(cova);
 
 }
 
@@ -298,15 +315,27 @@ void DrawGameplayScreen()
     dibujarDisparos(&shootsEnemyStack, WHITE);
 
 
+    char temparalChain[200];
+    strcpy(temparalChain, "Score: ");  // Copy str1 into result
+    
+    
+    char strScore[20];
+
+    itoa(score, strScore, 10);
+
+    strcat(temparalChain, strScore);
+    
+    DrawTextWithBorder(temparalChain, 20, 5, 20, MAROON, 1, WHITE);
 
     if (win) {
-        DrawTextWithBorder(" Ganaste !!!", 200, screenHeight / 2 - 30, 60, MAROON, WHITE);
+        DrawTextWithBorder(" Ganaste !!!", 200, screenHeight / 2 - 30, 60, MAROON, 3, WHITE);
     }
     else if (loose) {
-        DrawTextWithBorder("Game Over :(", 200, screenHeight / 2 - 30, 60, MAROON, WHITE);
+        DrawTextWithBorder("Game Over :(", 200, screenHeight / 2 - 30, 60, MAROON, 3, WHITE);
     }
 
 
+    DrawTexture(covaTexture, screenWidth - covaTexture.width -10 , 2, WHITE);
 }
 
 
@@ -398,7 +427,7 @@ void UpdateGameplayScreen(void)
         for (int i = 0; i < enemiesY; i++)
         {
             for (int j = 0; j < enemiesX; j++) {
-               enemies[i][j].position.y += enemies[i][j].speed * 4;
+               enemies[i][j].position.y += enemies[i][j].speed * 5;
             }
         }
     }
@@ -418,7 +447,7 @@ void UpdateGameplayScreen(void)
                         && shootsPlayerStack.arr[iS].position.y <= enemies[i][j].position.y + enemies[i][j].height / 2) {
 
                         enemies[i][j].isAlive = 0;
-                        
+                        score += 100;
                         removeAt(&shootsPlayerStack, iS);
                     }
                 }
@@ -468,15 +497,17 @@ void UpdateGameplayScreen(void)
         loose = 1;
     }
 
+    if ((loose || win) && (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP)))
+    {
+        finishScreen = 2;
+        PlaySound(fxCoin);
+    }
+
     /* Press enter or tap to change to ENDING screen 
     * 
     * Ya decidiremos despues como acaba
     * 
-    if (IsKeyPressed(KEY_ENTER) || IsGestureDetected(GESTURE_TAP))
-    {
-        finishScreen = 1;
-        PlaySound(fxCoin);
-    }
+    
     }*/
 }
 
@@ -491,10 +522,6 @@ int FinishGameplayScreen(void)
 {
     return finishScreen;
 }
-
-
-
-
 
 //----------------------------------------------------------------------------------
 // Funciones para pilas

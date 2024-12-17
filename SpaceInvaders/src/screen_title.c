@@ -26,10 +26,6 @@
 #include "raylib.h"
 #include "screens.h"
 
-#define resourcesPath "C:/Users/cybco/OneDrive/Escritorio/SpaceInvaders/raylib-game-template-main/src/resources/"
-
-
-
 static const int screenWidth = 800;
 static const int screenHeight = 450;
 //----------------------------------------------------------------------------------
@@ -38,7 +34,7 @@ static const int screenHeight = 450;
 static int framesCounter = 0;
 static int finishScreen = 0;
 
-Texture2D textureBackground, textureLogo, textureGamepad;
+Texture2D textureBackground, textureLogo, textureGamepad, covaTexture ;
 //----------------------------------------------------------------------------------
 // Title Screen Functions Definition
 //----------------------------------------------------------------------------------
@@ -46,6 +42,12 @@ Texture2D textureBackground, textureLogo, textureGamepad;
 // Title Screen Initialization logic
 void InitTitleScreen(void)
 {
+    char resourcesPath[200];
+    strcpy(resourcesPath, GetWorkingDirectory());
+    size_t length = strlen(resourcesPath);
+    resourcesPath[length - 27] = '\0';  // Ajusta el terminador nulo para recortar
+    strcat(resourcesPath, "src\\resources\\");
+    
     char temparalChain[200];
 
     // TODO: Initialize TITLE screen variables here!
@@ -82,6 +84,15 @@ void InitTitleScreen(void)
     ImageResize(&gamepad, 520, 130);
     textureGamepad = LoadTextureFromImage(gamepad);
     UnloadImage(gamepad);
+
+    strcpy(temparalChain, resourcesPath);  // Copy str1 into result
+    strcat(temparalChain, "CovaWhite.png");
+    Image cova = LoadImage(temparalChain);
+    temparalChain[0] = '\0';
+
+    ImageResize(&cova, 80, 80);
+    covaTexture = LoadTextureFromImage(cova);
+    UnloadImage(cova);
 }
 
 // Title Screen Update logic
@@ -107,6 +118,8 @@ void DrawTitleScreen(void)
     DrawTexture(textureLogo, screenWidth / 2 - textureLogo.width / 2, screenHeight / 2 - textureLogo.height / 2 - 100, WHITE);
 
     DrawTexture(textureGamepad, screenWidth / 2 - textureGamepad.width / 2, screenHeight / 2 - textureGamepad.height / 2 + 150, WHITE);
+
+    DrawTexture(covaTexture, screenWidth - covaTexture.width, 0, WHITE);
 }
 
 // Title Screen Unload logic
